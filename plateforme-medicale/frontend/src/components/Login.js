@@ -7,15 +7,10 @@ import {
   TextField,
   Button,
   Typography,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
 } from '@mui/material';
 
 const Login = () => {
-  const [userType, setUserType] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -85,21 +80,6 @@ const Login = () => {
         </Typography>
         {error && <Alert severity="error" sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
         <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-          <FormControl fullWidth margin="normal">
-            <InputLabel id="user-type-label">Type d'utilisateur</InputLabel>
-            <Select
-              labelId="user-type-label"
-              id="user-type"
-              value={userType}
-              label="Type d'utilisateur"
-              onChange={(e) => setUserType(e.target.value)}
-            >
-              <MenuItem value="admin">Administrateur</MenuItem>
-              <MenuItem value="medecin">Médecin</MenuItem>
-              <MenuItem value="patient">Patient</MenuItem>
-              <MenuItem value="institution">Institution Médicale</MenuItem>
-            </Select>
-          </FormControl>
           <TextField
             margin="normal"
             required
