@@ -8,29 +8,34 @@ console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Defined' : 'Undefined');
 
 exports.login = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { nom_utilisateur, mot_de_passe } = req.body;
 
     // Validate input
-    if (!username || !password) {
+    if (!nom_utilisateur || !mot_de_passe) {
       return res.status(400).json({ message: "Nom d'utilisateur et mot de passe requis" });
     }
 
     // Trim password to avoid whitespace issues
-    const trimmedPassword = password.trim();
-    console.log('Login attempt:', { username, password: trimmedPassword, passwordLength: trimmedPassword.length, passwordType: typeof trimmedPassword });
+    const trimmedPassword = mot_de_passe.trim();
+    console.log('Login attempt:', { nom_utilisateur, mot_de_passe: trimmedPassword, passwordLength: trimmedPassword.length, passwordType: typeof trimmedPassword });
 
     // Vérifier si l'utilisateur existe
-    const [users] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
-    console.log('Query result:', users);
+    const [utilisateurs] = await db.execute(`
+      SELECT u.*, sa.prenom, sa.nom
+      FROM utilisateurs u
+      LEFT JOIN super_admins sa ON u.role = 'super_admin' AND u.id_specifique_role = sa.id
+      WHERE u.nom_utilisateur = ?
+    `, [nom_utilisateur]);
+    console.log('Query result:', utilisateurs);
 
-    if (users.length === 0) {
+    if (utilisateurs.length === 0) {
       return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
     }
 
-    const user = users[0];
+    const user = utilisateurs[0];
 
     // Comparer le mot de passe fourni avec le hash stocké
-    const isPasswordValid = await bcrypt.compare(trimmedPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(trimmedPassword, user.mot_de_passe);
     console.log('Password valid:', isPasswordValid);
 
     if (!isPasswordValid) {
@@ -44,7 +49,7 @@ exports.login = async (req, res) => {
 
     // Générer un token JWT
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { id: user.id, nom_utilisateur: user.nom_utilisateur, role: user.role, prenom: user.prenom, nom: user.nom },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -54,9 +59,11 @@ exports.login = async (req, res) => {
       message: "Connexion réussie",
       user: {
         id: user.id,
-        username: user.username,
+        nom_utilisateur: user.nom_utilisateur,
         email: user.email,
-        role: user.role
+        role: user.role,
+        prenom: user.prenom,
+        nom: user.nom
       },
       token
     });
@@ -64,8 +71,20 @@ exports.login = async (req, res) => {
     console.error('Erreur lors de la connexion:', {
       message: error.message,
       stack: error.stack,
-      username: req.body?.username
+      nom_utilisateur: req.body?.nom_utilisateur
     });
     return res.status(500).json({ message: "Erreur lors de la connexion", error: error.message });
+  }
+};
+
+exports.logout = async (req, res) => {
+  try {
+    return res.status(200).json({ message: "Déconnexion réussie" });
+  } catch (error) {
+    console.error('Erreur lors de la déconnexion:', {
+      message: error.message,
+      stack: error.stack
+    });
+    return res.status(500).json({ message: "Erreur lors de la déconnexion", error: error.message });
   }
 };

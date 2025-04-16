@@ -22,14 +22,20 @@ const Login = () => {
 
     try {
       const response = await axios.post('http://localhost:5000/api/auth/login', {
-        username: username.trim(),
-        password: password.trim(),
+        nom_utilisateur: username.trim(),
+        mot_de_passe: password.trim(),
       });
       console.log('Login response:', response.data);
 
       // Stocker le token et les informations utilisateur dans localStorage
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('user', JSON.stringify({
+        id: response.data.user.id,
+        username: response.data.user.nom_utilisateur,
+        role: response.data.user.role,
+        prenom: response.data.user.prenom,
+        nom: response.data.user.nom
+      }));
       console.log('Stored in localStorage:', {
         token: response.data.token,
         user: response.data.user,
@@ -37,7 +43,7 @@ const Login = () => {
 
       // Rediriger en fonction du rôle
       console.log('User role:', response.data.user.role);
-      if (response.data.user.role === 'admin') {
+      if (['super_admin', 'admin'].includes(response.data.user.role)) {
         console.log('Navigating to /admin');
         navigate('/admin', { replace: true });
       } else if (response.data.user.role === 'medecin') {

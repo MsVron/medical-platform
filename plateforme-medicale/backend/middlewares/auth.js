@@ -18,28 +18,28 @@ exports.verifyToken = (req, res, next) => {
 };
 
 exports.isAdmin = (req, res, next) => {
-  if (req.user.role !== 'admin') {
+  if (!['admin', 'super_admin'].includes(req.user.role)) {
     return res.status(403).json({ message: "Accès réservé aux administrateurs" });
   }
   next();
 };
 
 exports.isMedecin = (req, res, next) => {
-  if (req.user.role !== 'medecin' && req.user.role !== 'admin') {
+  if (!['medecin', 'admin', 'super_admin'].includes(req.user.role)) {
     return res.status(403).json({ message: "Accès réservé aux médecins" });
   }
   next();
 };
 
 exports.isPatient = (req, res, next) => {
-  if (req.user.role !== 'patient' && req.user.role !== 'admin') {
+  if (!['patient', 'admin', 'super_admin'].includes(req.user.role)) {
     return res.status(403).json({ message: "Accès réservé aux patients" });
   }
   next();
 };
 
 exports.isInstitution = (req, res, next) => {
-  if (req.user.role !== 'institution' && req.user.role !== 'admin') {
+  if (!['institution', 'admin', 'super_admin'].includes(req.user.role)) {
     return res.status(403).json({ message: "Accès réservé aux institutions médicales" });
   }
   next();
