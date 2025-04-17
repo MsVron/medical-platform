@@ -1,0 +1,353 @@
+erDiagram
+    UTILISATEURS {
+        int id PK
+        string nom_utilisateur
+        string mot_de_passe
+        string email
+        enum role
+        datetime date_creation
+        int id_specifique_role
+        boolean est_actif
+        datetime derniere_connexion
+    }
+
+    SUPER_ADMINS {
+        int id PK
+        string prenom
+        string nom
+        string telephone
+        string adresse
+    }
+
+    ADMINS {
+        int id PK
+        string prenom
+        string nom
+        string telephone
+        int cree_par FK
+        datetime date_creation
+        int institution_id FK
+    }
+
+    INSTITUTIONS {
+        int id PK
+        string nom
+        string adresse
+        string ville
+        string code_postal
+        string pays
+        string telephone
+        string email_contact
+        string site_web
+        text description
+        text horaires_ouverture
+        string coordonnees_gps
+        boolean est_actif
+    }
+
+    SPECIALITES {
+        int id PK
+        string nom
+        text description
+    }
+
+    MEDECINS {
+        int id PK
+        string prenom
+        string nom
+        int specialite_id FK
+        string numero_ordre
+        string telephone
+        string email_professionnel
+        string photo_url
+        text biographie
+        int institution_id FK
+        boolean est_actif
+    }
+
+    MEDECIN_INSTITUTION {
+        int medecin_id PK,FK
+        int institution_id PK,FK
+        boolean est_principal
+        date date_debut
+        date date_fin
+    }
+
+    DISPONIBILITES_MEDECIN {
+        int id PK
+        int medecin_id FK
+        int institution_id FK
+        enum jour_semaine
+        time heure_debut
+        time heure_fin
+        int intervalle_minutes
+        boolean est_actif
+    }
+
+    INDISPONIBILITES_EXCEPTIONNELLES {
+        int id PK
+        int medecin_id FK
+        datetime date_debut
+        datetime date_fin
+        string motif
+    }
+
+    PATIENTS {
+        int id PK
+        string prenom
+        string nom
+        date date_naissance
+        enum sexe
+        string numero_securite_sociale
+        string adresse
+        string ville
+        string code_postal
+        string pays
+        string telephone
+        string email
+        string contact_urgence_nom
+        string contact_urgence_telephone
+        enum groupe_sanguin
+        int taille_cm
+        decimal poids_kg
+        boolean est_fumeur
+        enum consommation_alcool
+        enum activite_physique
+        string profession
+        int medecin_traitant_id FK
+        datetime date_inscription
+    }
+
+    ALLERGIES {
+        int id PK
+        string nom
+        text description
+    }
+
+    PATIENT_ALLERGIES {
+        int patient_id PK,FK
+        int allergie_id PK,FK
+        date date_diagnostic
+        enum severite
+        text notes
+    }
+
+    ANTECEDENTS_MEDICAUX {
+        int id PK
+        int patient_id FK
+        enum type
+        text description
+        date date_debut
+        date date_fin
+        boolean est_chronique
+        int medecin_id FK
+        datetime date_enregistrement
+    }
+
+    MEDICAMENTS {
+        int id PK
+        string nom_commercial
+        string nom_molecule
+        string dosage
+        enum forme
+        text description
+    }
+
+    TRAITEMENTS {
+        int id PK
+        int patient_id FK
+        int medicament_id FK
+        string posologie
+        date date_debut
+        date date_fin
+        boolean est_permanent
+        int medecin_prescripteur_id FK
+        datetime date_prescription
+        text instructions
+    }
+
+    RENDEZ_VOUS {
+        int id PK
+        int patient_id FK
+        int medecin_id FK
+        int institution_id FK
+        datetime date_heure_debut
+        datetime date_heure_fin
+        string motif
+        enum statut
+        text notes_patient
+        enum mode
+        datetime date_creation
+        int createur_id FK
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        int utilisateur_id FK
+        string titre
+        text message
+        enum type
+        boolean est_lue
+        datetime date_creation
+        datetime date_lecture
+    }
+
+    CONSULTATIONS {
+        int id PK
+        int rendez_vous_id FK
+        int medecin_id FK
+        int patient_id FK
+        datetime date_consultation
+        text motif
+        text anamnese
+        text examen_clinique
+        text diagnostic
+        text conclusion
+        boolean est_complete
+        datetime date_creation
+        datetime date_modification
+    }
+
+    CONSTANTES_VITALES {
+        int id PK
+        int consultation_id FK
+        int patient_id FK
+        datetime date_mesure
+        decimal temperature
+        int tension_arterielle_systolique
+        int tension_arterielle_diastolique
+        int frequence_cardiaque
+        int saturation_oxygene
+        int frequence_respiratoire
+        decimal glycemie
+        text notes
+    }
+
+    TYPES_ANALYSES {
+        int id PK
+        string nom
+        text description
+        text valeurs_normales
+    }
+
+    RESULTATS_ANALYSES {
+        int id PK
+        int patient_id FK
+        int type_analyse_id FK
+        int medecin_prescripteur_id FK
+        date date_prescription
+        date date_realisation
+        string laboratoire
+        text resultats
+        text interpretation
+        boolean est_normal
+        string document_url
+        int medecin_interpreteur_id FK
+        datetime date_interpretation
+    }
+
+    TYPES_IMAGERIE {
+        int id PK
+        string nom
+        text description
+    }
+
+    RESULTATS_IMAGERIE {
+        int id PK
+        int patient_id FK
+        int type_imagerie_id FK
+        int medecin_prescripteur_id FK
+        date date_prescription
+        date date_realisation
+        int institution_realisation_id FK
+        text interpretation
+        text conclusion
+        text image_urls
+        int medecin_radiologue_id FK
+        datetime date_interpretation
+    }
+
+    DOCUMENTS_MEDICAUX {
+        int id PK
+        int patient_id FK
+        enum type
+        string titre
+        text description
+        string document_url
+        int medecin_id FK
+        datetime date_creation
+        boolean est_partage
+    }
+
+    HISTORIQUE_ACTIONS {
+        int id PK
+        int utilisateur_id FK
+        string action_type
+        string table_concernee
+        int enregistrement_id
+        text description
+        datetime date_action
+        string adresse_ip
+    }
+
+    UTILISATEURS ||--o{ SUPER_ADMINS : "one-specific-role"
+    UTILISATEURS ||--o{ ADMINS : "one-specific-role"
+    UTILISATEURS ||--o{ MEDECINS : "one-specific-role"
+    UTILISATEURS ||--o{ PATIENTS : "one-specific-role"
+    UTILISATEURS ||--o{ INSTITUTIONS : "one-specific-role"
+
+    SUPER_ADMINS ||--o{ ADMINS : "creates"
+    ADMINS }|--|| INSTITUTIONS : "manages"
+
+    MEDECINS }|--|| SPECIALITES : "has"
+    MEDECINS }|--|| INSTITUTIONS : "primary_institution"
+
+    MEDECINS ||--o{ MEDECIN_INSTITUTION : "works_at"
+    INSTITUTIONS ||--o{ MEDECIN_INSTITUTION : "employs"
+
+    MEDECINS ||--o{ DISPONIBILITES_MEDECIN : "has_availability"
+    INSTITUTIONS ||--o{ DISPONIBILITES_MEDECIN : "provides_location"
+
+    MEDECINS ||--o{ INDISPONIBILITES_EXCEPTIONNELLES : "has_exceptions"
+
+    PATIENTS }o--|| MEDECINS : "has_primary_doctor"
+
+    PATIENTS ||--o{ PATIENT_ALLERGIES : "has"
+    ALLERGIES ||--o{ PATIENT_ALLERGIES : "is_assigned_to"
+
+    PATIENTS ||--o{ ANTECEDENTS_MEDICAUX : "has"
+    MEDECINS ||--o{ ANTECEDENTS_MEDICAUX : "records"
+
+    PATIENTS ||--o{ TRAITEMENTS : "receives"
+    MEDICAMENTS ||--o{ TRAITEMENTS : "is_prescribed_as"
+    MEDECINS ||--o{ TRAITEMENTS : "prescribes"
+
+    PATIENTS ||--o{ RENDEZ_VOUS : "books"
+    MEDECINS ||--o{ RENDEZ_VOUS : "receives"
+    INSTITUTIONS ||--o{ RENDEZ_VOUS : "hosts"
+    UTILISATEURS ||--o{ RENDEZ_VOUS : "creates"
+
+    UTILISATEURS ||--o{ NOTIFICATIONS : "receives"
+
+    RENDEZ_VOUS ||--o{ CONSULTATIONS : "results_in"
+    MEDECINS ||--o{ CONSULTATIONS : "performs"
+    PATIENTS ||--o{ CONSULTATIONS : "attends"
+
+    CONSULTATIONS ||--o{ CONSTANTES_VITALES : "includes"
+    PATIENTS ||--o{ CONSTANTES_VITALES : "has_measurements"
+
+    PATIENTS ||--o{ RESULTATS_ANALYSES : "has_tests"
+    TYPES_ANALYSES ||--o{ RESULTATS_ANALYSES : "categorizes"
+    MEDECINS ||--o{ RESULTATS_ANALYSES : "prescribes"
+    MEDECINS ||--o{ RESULTATS_ANALYSES : "interprets"
+
+    PATIENTS ||--o{ RESULTATS_IMAGERIE : "has_imaging"
+    TYPES_IMAGERIE ||--o{ RESULTATS_IMAGERIE : "categorizes"
+    MEDECINS ||--o{ RESULTATS_IMAGERIE : "prescribes"
+    INSTITUTIONS ||--o{ RESULTATS_IMAGERIE : "performs"
+    MEDECINS ||--o{ RESULTATS_IMAGERIE : "interprets"
+
+    PATIENTS ||--o{ DOCUMENTS_MEDICAUX : "owns"
+    MEDECINS ||--o{ DOCUMENTS_MEDICAUX : "creates"
+
+    UTILISATEURS ||--o{ HISTORIQUE_ACTIONS : "performs"

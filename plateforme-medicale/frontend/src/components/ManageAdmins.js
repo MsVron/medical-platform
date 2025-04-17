@@ -15,6 +15,9 @@ const ManageAdmins = () => {
     institution_id: '',
   });
   const [editId, setEditId] = useState(null);
+  const [success, setSuccess] = useState('');
+const [error, setError] = useState('');
+
 
   useEffect(() => {
     fetchAdmins();
@@ -64,23 +67,42 @@ const ManageAdmins = () => {
   };
 
   const handleSubmit = async () => {
+    console.log('handleSubmit called with formData:', formData);
     try {
+      if (!formData.nom_utilisateur || !formData.mot_de_passe || !formData.email || !formData.prenom || !formData.nom) {
+        setError('Tous les champs obligatoires doivent être remplis');
+        return;
+      }
+
       const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
       if (editId) {
+        console.log('Sending PUT request to update admin:', editId);
         await axios.put(`http://localhost:5000/api/admins/${editId}`, formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setSuccess('Administrateur modifié avec succès');
       } else {
+        console.log('Sending POST request to add admin');
         await axios.post('http://localhost:5000/api/admins', formData, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setSuccess('Administrateur ajouté avec succès');
       }
-      fetchAdmins();
+
+      setError('');
+      await fetchAdmins();
       handleClose();
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
+      setSuccess('');
+      setError(error.response?.data?.message || 'Erreur lors de l\'ajout/modification de l\'administrateur');
     }
   };
+
 
   const handleDelete = async (id) => {
     try {
@@ -98,6 +120,16 @@ const ManageAdmins = () => {
       <Typography variant="h4" gutterBottom>
         Gestion des administrateurs
       </Typography>
+      {error && (
+    <Typography color="error" sx={{ mb: 2 }}>
+      {error}
+    </Typography>
+  )}
+  {success && (
+    <Typography color="success.main" sx={{ mb: 2 }}>
+      {success}
+    </Typography>
+  )}
       <Button variant="contained" color="primary" onClick={() => handleOpen()}>
         Ajouter un administrateur
       </Button>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
-const { verifyToken, isSuperAdmin } = require('../middleware/auth');
+const { verifyToken, isSuperAdmin } = require('../middlewares/auth');
 
 router.post('/admins', verifyToken, isSuperAdmin, adminController.addAdmin);
 router.put('/admins/:id', verifyToken, isSuperAdmin, adminController.editAdmin);

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const institutionController = require('../controllers/institutionController');
-const { verifyToken, isAdmin, isSuperAdmin } = require('../middleware/auth');
+const { verifyToken, isAdmin, isSuperAdmin } = require('../middlewares/auth');
 
 // Get institutions
 router.get('/institutions', verifyToken, institutionController.getInstitutions);

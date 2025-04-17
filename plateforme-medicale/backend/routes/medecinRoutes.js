@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const medecinController = require('../controllers/medecinController');
-const { verifyToken, isAdmin, isSuperAdmin, isInstitution } = require('../middleware/auth');
+const { verifyToken, isAdmin, isSuperAdmin, isInstitution } = require('../middlewares/auth');
 
 // Get doctors (super_admin/admin see all, institution sees their own)
 router.get('/medecins', verifyToken, medecinController.getMedecins);

@@ -1,85 +1,19 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-require('dotenv').config();
 
-// -------- AUTH: LOGIN --------
-exports.login = async (req, res) => {
-  try {
-    const { nom_utilisateur, mot_de_passe } = req.body;
-
-    if (!nom_utilisateur || !mot_de_passe) {
-      return res.status(400).json({ message: "Nom d'utilisateur et mot de passe requis" });
-    }
-
-    const [utilisateurs] = await db.execute(`
-      SELECT u.*, sa.prenom, sa.nom
-      FROM utilisateurs u
-      LEFT JOIN super_admins sa ON u.role = 'super_admin' AND u.id_specifique_role = sa.id
-      WHERE u.nom_utilisateur = ?
-    `, [nom_utilisateur]);
-
-    if (utilisateurs.length === 0) {
-      return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
-    }
-
-    const user = utilisateurs[0];
-    const isPasswordValid = await bcrypt.compare(mot_de_passe.trim(), user.mot_de_passe);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
-    }
-
-    if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET is not defined');
-
-    const token = jwt.sign(
-      {
-        id: user.id,
-        nom_utilisateur: user.nom_utilisateur,
-        role: user.role,
-        prenom: user.prenom,
-        nom: user.nom
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    return res.status(200).json({
-      message: "Connexion réussie",
-      user: {
-        id: user.id,
-        nom_utilisateur: user.nom_utilisateur,
-        email: user.email,
-        role: user.role,
-        prenom: user.prenom,
-        nom: user.nom
-      },
-      token
-    });
-
-  } catch (error) {
-    console.error('Erreur lors de la connexion:', error);
-    return res.status(500).json({ message: "Erreur lors de la connexion", error: error.message });
-  }
-};
-
-// -------- AUTH: LOGOUT --------
-exports.logout = async (req, res) => {
-  try {
-    return res.status(200).json({ message: "Déconnexion réussie" });
-  } catch (error) {
-    console.error('Erreur lors de la déconnexion:', error);
-    return res.status(500).json({ message: "Erreur lors de la déconnexion", error: error.message });
-  }
-};
-
-// -------- ADMIN: CREATE --------
 exports.addAdmin = async (req, res) => {
   try {
     const { nom_utilisateur, mot_de_passe, email, prenom, nom, telephone, institution_id } = req.body;
 
     if (!nom_utilisateur || !mot_de_passe || !email || !prenom || !nom) {
       return res.status(400).json({ message: "Tous les champs obligatoires doivent être fournis" });
+    }
+
+    if (institution_id) {
+      const [institutions] = await db.execute('SELECT id FROM institutions WHERE id = ?', [institution_id]);
+      if (institutions.length === 0) {
+        return res.status(400).json({ message: "Institution invalide" });
+      }
     }
 
     const [existingUsers] = await db.execute(
@@ -103,14 +37,12 @@ exports.addAdmin = async (req, res) => {
     );
 
     return res.status(201).json({ message: "Administrateur ajouté avec succès" });
-
   } catch (error) {
     console.error('Erreur lors de l\'ajout d\'un administrateur:', error);
     return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// -------- ADMIN: UPDATE --------
 exports.editAdmin = async (req, res) => {
   try {
     const { id } = req.params;
@@ -125,6 +57,13 @@ exports.editAdmin = async (req, res) => {
       return res.status(404).json({ message: "Administrateur non trouvé" });
     }
 
+    if (institution_id) {
+      const [institutions] = await db.execute('SELECT id FROM institutions WHERE id = ?', [institution_id]);
+      if (institutions.length === 0) {
+        return res.status(400).json({ message: "Institution invalide" });
+      }
+    }
+
     await db.execute(
       'UPDATE admins SET prenom = ?, nom = ?, telephone = ?, institution_id = ? WHERE id = ?',
       [prenom, nom, telephone || null, institution_id || null, id]
@@ -136,14 +75,12 @@ exports.editAdmin = async (req, res) => {
     );
 
     return res.status(200).json({ message: "Administrateur mis à jour avec succès" });
-
   } catch (error) {
     console.error('Erreur lors de la modification d\'un administrateur:', error);
     return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// -------- ADMIN: DELETE --------
 exports.deleteAdmin = async (req, res) => {
   try {
     const { id } = req.params;
@@ -157,14 +94,12 @@ exports.deleteAdmin = async (req, res) => {
     await db.execute('DELETE FROM admins WHERE id = ?', [id]);
 
     return res.status(200).json({ message: "Administrateur supprimé avec succès" });
-
   } catch (error) {
     console.error('Erreur lors de la suppression d\'un administrateur:', error);
     return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-// -------- ADMIN: GET ALL --------
 exports.getAdmins = async (req, res) => {
   try {
     const [admins] = await db.execute(`
@@ -175,7 +110,6 @@ exports.getAdmins = async (req, res) => {
     `, [req.user.id_specifique_role]);
 
     return res.status(200).json({ admins });
-
   } catch (error) {
     console.error('Erreur lors de la récupération des administrateurs:', error);
     return res.status(500).json({ message: "Erreur serveur", error: error.message });
