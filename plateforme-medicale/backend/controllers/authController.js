@@ -1,90 +1,116 @@
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const db = require('../config/db');
-require('dotenv').config();
 
-console.log('DB imported:', db);
-console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'Defined' : 'Undefined');
-
-exports.login = async (req, res) => {
+exports.addAdmin = async (req, res) => {
   try {
-    const { nom_utilisateur, mot_de_passe } = req.body;
+    const { nom_utilisateur, mot_de_passe, email, prenom, nom, telephone, institution_id } = req.body;
 
     // Validate input
-    if (!nom_utilisateur || !mot_de_passe) {
-      return res.status(400).json({ message: "Nom d'utilisateur et mot de passe requis" });
+    if (!nom_utilisateur || !mot_de_passe || !email || !prenom || !nom) {
+      return res.status(400).json({ message: "Tous les champs obligatoires doivent être fournis" });
     }
 
-    // Trim password to avoid whitespace issues
-    const trimmedPassword = mot_de_passe.trim();
-    console.log('Login attempt:', { nom_utilisateur, mot_de_passe: trimmedPassword, passwordLength: trimmedPassword.length, passwordType: typeof trimmedPassword });
-
-    // Vérifier si l'utilisateur existe
-    const [utilisateurs] = await db.execute(`
-      SELECT u.*, sa.prenom, sa.nom
-      FROM utilisateurs u
-      LEFT JOIN super_admins sa ON u.role = 'super_admin' AND u.id_specifique_role = sa.id
-      WHERE u.nom_utilisateur = ?
-    `, [nom_utilisateur]);
-    console.log('Query result:', utilisateurs);
-
-    if (utilisateurs.length === 0) {
-      return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
+    // Check if username or email already exists
+    const [existingUsers] = await db.execute(
+      'SELECT id FROM utilisateurs WHERE nom_utilisateur = ? OR email = ?',
+      [nom_utilisateur, email]
+    );
+    if (existingUsers.length > 0) {
+      return res.status(400).json({ message: "Nom d'utilisateur ou email déjà utilisé" });
     }
 
-    const user = utilisateurs[0];
+    // Hash password
+    const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
 
-    // Comparer le mot de passe fourni avec le hash stocké
-    const isPasswordValid = await bcrypt.compare(trimmedPassword, user.mot_de_passe);
-    console.log('Password valid:', isPasswordValid);
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
-    }
-
-    // Vérifier JWT_SECRET
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined');
-    }
-
-    // Générer un token JWT
-    const token = jwt.sign(
-      { id: user.id, nom_utilisateur: user.nom_utilisateur, role: user.role, prenom: user.prenom, nom: user.nom },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+    // Insert into admins table
+    const [adminResult] = await db.execute(
+      'INSERT INTO admins (prenom, nom, telephone, cree_par, institution_id) VALUES (?, ?, ?, ?, ?)',
+      [prenom, nom, telephone || null, req.user.id_specifique_role, institution_id || null]
     );
 
-    // Retourner les informations de l'utilisateur et le token
-    return res.status(200).json({
-      message: "Connexion réussie",
-      user: {
-        id: user.id,
-        nom_utilisateur: user.nom_utilisateur,
-        email: user.email,
-        role: user.role,
-        prenom: user.prenom,
-        nom: user.nom
-      },
-      token
-    });
+    // Insert into utilisateurs table
+    await db.execute(
+      'INSERT INTO utilisateurs (nom_utilisateur, mot_de_passe, email, role, id_specifique_role, est_actif) VALUES (?, ?, ?, ?, ?, ?)',
+      [nom_utilisateur, hashedPassword, email, 'admin', adminResult.insertId, true]
+    );
+
+    return res.status(201).json({ message: "Administrateur ajouté avec succès" });
   } catch (error) {
-    console.error('Erreur lors de la connexion:', {
-      message: error.message,
-      stack: error.stack,
-      nom_utilisateur: req.body?.nom_utilisateur
-    });
-    return res.status(500).json({ message: "Erreur lors de la connexion", error: error.message });
+    console.error('Erreur lors de l\'ajout d\'un administrateur:', error);
+    return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };
 
-exports.logout = async (req, res) => {
+exports.editAdmin = async (req, res) => {
   try {
-    return res.status(200).json({ message: "Déconnexion réussie" });
+    const { id } = req.params;
+    const { prenom, nom, telephone, email, institution_id, est_actif } = req.body;
+
+    // Validate input
+    if (!prenom || !nom || !email) {
+      return res.status(400).json({ message: "Prénom, nom et email sont obligatoires" });
+    }
+
+    // Check if admin exists
+    const [admins] = await db.execute('SELECT id FROM admins WHERE id = ?', [id]);
+    if (admins.length === 0) {
+      return res.status(404).json({ message: "Administrateur non trouvé" });
+    }
+
+    // Update admins table
+    await db.execute(
+      'UPDATE admins SET prenom = ?, nom = ?, telephone = ?, institution_id = ? WHERE id = ?',
+      [prenom, nom, telephone || null, institution_id || null, id]
+    );
+
+    // Update utilisateurs table
+    await db.execute(
+      'UPDATE utilisateurs SET email = ?, est_actif = ? WHERE id_specifique_role = ? AND role = ?',
+      [email, est_actif !== undefined ? est_actif : true, id, 'admin']
+    );
+
+    return res.status(200).json({ message: "Administrateur mis à jour avec succès" });
   } catch (error) {
-    console.error('Erreur lors de la déconnexion:', {
-      message: error.message,
-      stack: error.stack
-    });
-    return res.status(500).json({ message: "Erreur lors de la déconnexion", error: error.message });
+    console.error('Erreur lors de la modification d\'un administrateur:', error);
+    return res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+exports.deleteAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if admin exists
+    const [admins] = await db.execute('SELECT id FROM admins WHERE id = ?', [id]);
+    if (admins.length === 0) {
+      return res.status(404).json({ message: "Administrateur non trouvé" });
+    }
+
+    // Delete from utilisateurs table
+    await db.execute('DELETE FROM utilisateurs WHERE id_specifique_role = ? AND role = ?', [id, 'admin']);
+
+    // Delete from admins table
+    await db.execute('DELETE FROM admins WHERE id = ?', [id]);
+
+    return res.status(200).json({ message: "Administrateur supprimé avec succès" });
+  } catch (error) {
+    console.error('Erreur lors de la suppression d\'un administrateur:', error);
+    return res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
+};
+
+exports.getAdmins = async (req, res) => {
+  try {
+    const [admins] = await db.execute(`
+      SELECT a.id, a.prenom, a.nom, a.telephone, a.institution_id, a.date_creation, u.email, u.est_actif
+      FROM admins a
+      JOIN utilisateurs u ON u.id_specifique_role = a.id AND u.role = 'admin'
+      WHERE a.cree_par = ?
+    `, [req.user.id_specifique_role]);
+
+    return res.status(200).json({ admins });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des administrateurs:', error);
+    return res.status(500).json({ message: "Erreur serveur", error: error.message });
   }
 };

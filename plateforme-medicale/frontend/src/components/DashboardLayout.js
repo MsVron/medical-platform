@@ -3,7 +3,6 @@ import { Outlet, useNavigate, NavLink } from 'react-router-dom';
 import { Box, Drawer, List, ListItem, ListItemIcon, ListItemText, Typography, Button, Divider } from '@mui/material';
 import { AdminPanelSettings, MedicalServices, Person, Business, Lock, BarChart, ExitToApp } from '@mui/icons-material';
 
-// Récupérer les données utilisateur depuis localStorage
 const getUser = () => {
   try {
     const userData = localStorage.getItem('user');
@@ -27,25 +26,28 @@ const getUser = () => {
 
 const sidebarItems = {
   super_admin: [
+    { text: 'Gestion des administrateurs', path: '/admin/admins', icon: <AdminPanelSettings /> },
     { text: 'Gestion des médecins', path: '/admin/medecins', icon: <MedicalServices /> },
     { text: 'Gestion des institutions', path: '/admin/institutions', icon: <Business /> },
+    { text: 'Gestion des patients', path: '/admin/patients', icon: <Person /> },
     { text: 'Gestion des accès', path: '/admin/acces', icon: <Lock /> },
     { text: 'Statistiques', path: '/admin/statistiques', icon: <BarChart /> },
   ],
   admin: [
     { text: 'Gestion des médecins', path: '/admin/medecins', icon: <MedicalServices /> },
     { text: 'Gestion des institutions', path: '/admin/institutions', icon: <Business /> },
-    { text: 'Gestion des accès', path: '/admin/acces', icon: <Lock /> },
     { text: 'Statistiques', path: '/admin/statistiques', icon: <BarChart /> },
   ],
   medecin: [
     { text: 'Mon espace', path: '/medecin', icon: <MedicalServices /> },
+    { text: 'Mes patients', path: '/medecin/patients', icon: <Person /> },
   ],
   patient: [
     { text: 'Mon espace', path: '/patient', icon: <Person /> },
   ],
   institution: [
     { text: 'Mon espace', path: '/institution', icon: <Business /> },
+    { text: 'Nos patients', path: '/institution/patients', icon: <Person /> },
   ],
 };
 

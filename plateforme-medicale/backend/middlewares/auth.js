@@ -17,9 +17,20 @@ exports.verifyToken = (req, res, next) => {
   }
 };
 
+exports.isSuperAdmin = (req, res, next) => {
+  if (req.user.role !== 'super_admin') {
+    return res.status(403).json({ message: "Accès réservé aux super administrateurs" });
+  }
+  next();
+};
+
 exports.isAdmin = (req, res, next) => {
   if (!['admin', 'super_admin'].includes(req.user.role)) {
     return res.status(403).json({ message: "Accès réservé aux administrateurs" });
+  }
+  // Prevent admin from modifying patients
+  if (req.user.role === 'admin' && ['POST', 'PUT', 'DELETE'].includes(req.method) && req.originalUrl.includes('/patients')) {
+    return res.status(403).json({ message: "Les administrateurs ne peuvent pas modifier les patients" });
   }
   next();
 };

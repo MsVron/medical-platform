@@ -11,8 +11,17 @@ app.use(express.json());
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+// Add routes for patients, doctors, and institutions
+const patientRoutes = require('./routes/patientRoutes');
+const medecinRoutes = require('./routes/medecinRoutes');
+const institutionRoutes = require('./routes/institutionRoutes');
 
 app.use('/api/auth', authRoutes);
+app.use('/api', adminRoutes);
+app.use('/api', patientRoutes);
+app.use('/api', medecinRoutes);
+app.use('/api', institutionRoutes);
 
 // Route de test
 app.get('/', (req, res) => {
