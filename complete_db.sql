@@ -30,9 +30,7 @@ CREATE TABLE admins (
   telephone VARCHAR(20),
   cree_par INT, -- Référence super_admins.id
   date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  institution_id INT, -- Référence institutions.id
   FOREIGN KEY (cree_par) REFERENCES super_admins(id),
-  FOREIGN KEY (institution_id) REFERENCES institutions(id)
 );
 
 -- Table des établissements
