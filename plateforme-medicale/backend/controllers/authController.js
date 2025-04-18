@@ -38,7 +38,8 @@ exports.login = async (req, res) => {
         nom_utilisateur: user.nom_utilisateur,
         role: user.role,
         prenom: user.prenom,
-        nom: user.nom
+        nom: user.nom,
+        id_specifique_role: user.id_specifique_role
       },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
@@ -56,7 +57,6 @@ exports.login = async (req, res) => {
       },
       token
     });
-
   } catch (error) {
     console.error('Erreur lors de la connexion:', error);
     return res.status(500).json({ message: "Erreur lors de la connexion", error: error.message });

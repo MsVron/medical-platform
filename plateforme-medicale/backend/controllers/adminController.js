@@ -3,17 +3,14 @@ const db = require('../config/db');
 
 exports.addAdmin = async (req, res) => {
   try {
-    const { nom_utilisateur, mot_de_passe, email, prenom, nom, telephone, institution_id } = req.body;
+    const { nom_utilisateur, mot_de_passe, email, prenom, nom, telephone } = req.body;
 
     if (!nom_utilisateur || !mot_de_passe || !email || !prenom || !nom) {
       return res.status(400).json({ message: "Tous les champs obligatoires doivent être fournis" });
     }
 
-    if (institution_id) {
-      const [institutions] = await db.execute('SELECT id FROM institutions WHERE id = ?', [institution_id]);
-      if (institutions.length === 0) {
-        return res.status(400).json({ message: "Institution invalide" });
-      }
+    if (!req.user || req.user.id_specifique_role === undefined) {
+      return res.status(401).json({ message: "Utilisateur non authentifié ou informations insuffisantes" });
     }
 
     const [existingUsers] = await db.execute(
@@ -27,8 +24,8 @@ exports.addAdmin = async (req, res) => {
     const hashedPassword = await bcrypt.hash(mot_de_passe, 10);
 
     const [adminResult] = await db.execute(
-      'INSERT INTO admins (prenom, nom, telephone, cree_par, institution_id) VALUES (?, ?, ?, ?, ?)',
-      [prenom, nom, telephone || null, req.user.id_specifique_role, institution_id || null]
+      'INSERT INTO admins (prenom, nom, telephone, cree_par) VALUES (?, ?, ?, ?)',
+      [prenom, nom, telephone || null, req.user.id_specifique_role]
     );
 
     await db.execute(
@@ -46,7 +43,7 @@ exports.addAdmin = async (req, res) => {
 exports.editAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { prenom, nom, telephone, email, institution_id, est_actif } = req.body;
+    const { prenom, nom, telephone, email, est_actif } = req.body;
 
     if (!prenom || !nom || !email) {
       return res.status(400).json({ message: "Prénom, nom et email sont obligatoires" });
@@ -57,16 +54,9 @@ exports.editAdmin = async (req, res) => {
       return res.status(404).json({ message: "Administrateur non trouvé" });
     }
 
-    if (institution_id) {
-      const [institutions] = await db.execute('SELECT id FROM institutions WHERE id = ?', [institution_id]);
-      if (institutions.length === 0) {
-        return res.status(400).json({ message: "Institution invalide" });
-      }
-    }
-
     await db.execute(
-      'UPDATE admins SET prenom = ?, nom = ?, telephone = ?, institution_id = ? WHERE id = ?',
-      [prenom, nom, telephone || null, institution_id || null, id]
+      'UPDATE admins SET prenom = ?, nom = ?, telephone = ? WHERE id = ?',
+      [prenom, nom, telephone || null, id]
     );
 
     await db.execute(
@@ -102,8 +92,12 @@ exports.deleteAdmin = async (req, res) => {
 
 exports.getAdmins = async (req, res) => {
   try {
+    if (!req.user || req.user.id_specifique_role === undefined) {
+      return res.status(401).json({ message: "Utilisateur non authentifié ou informations insuffisantes" });
+    }
+
     const [admins] = await db.execute(`
-      SELECT a.id, a.prenom, a.nom, a.telephone, a.institution_id, a.date_creation, u.email, u.est_actif
+      SELECT a.id, a.prenom, a.nom, a.telephone, a.date_creation, u.email, u.est_actif
       FROM admins a
       JOIN utilisateurs u ON u.id_specifique_role = a.id AND u.role = 'admin'
       WHERE a.cree_par = ?

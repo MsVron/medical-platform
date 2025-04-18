@@ -12,12 +12,10 @@ const ManageAdmins = () => {
     prenom: '',
     nom: '',
     telephone: '',
-    institution_id: '',
   });
   const [editId, setEditId] = useState(null);
+  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-const [error, setError] = useState('');
-
 
   useEffect(() => {
     fetchAdmins();
@@ -31,6 +29,7 @@ const [error, setError] = useState('');
       setAdmins(response.data.admins);
     } catch (error) {
       console.error('Erreur lors de la récupération des administrateurs:', error);
+      setError(error.response?.data?.message || 'Erreur lors de la récupération des administrateurs');
     }
   };
 
@@ -44,7 +43,6 @@ const [error, setError] = useState('');
         prenom: admin.prenom,
         nom: admin.nom,
         telephone: admin.telephone || '',
-        institution_id: admin.institution_id || '',
       });
     } else {
       setEditId(null);
@@ -55,15 +53,18 @@ const [error, setError] = useState('');
         prenom: '',
         nom: '',
         telephone: '',
-        institution_id: '',
       });
     }
+    setError('');
+    setSuccess('');
     setOpen(true);
   };
 
   const handleClose = () => {
     setOpen(false);
     setEditId(null);
+    setError('');
+    setSuccess('');
   };
 
   const handleSubmit = async () => {
@@ -76,7 +77,8 @@ const [error, setError] = useState('');
 
       const token = localStorage.getItem('token');
       if (!token) {
-        throw new Error('No authentication token found');
+        setError('Vous devez être connecté pour effectuer cette action');
+        return;
       }
 
       if (editId) {
@@ -92,26 +94,24 @@ const [error, setError] = useState('');
         });
         setSuccess('Administrateur ajouté avec succès');
       }
-
-      setError('');
       await fetchAdmins();
       handleClose();
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
-      setSuccess('');
       setError(error.response?.data?.message || 'Erreur lors de l\'ajout/modification de l\'administrateur');
     }
   };
-
 
   const handleDelete = async (id) => {
     try {
       await axios.delete(`http://localhost:5000/api/admins/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
+      setSuccess('Administrateur supprimé avec succès');
       fetchAdmins();
     } catch (error) {
       console.error('Erreur lors de la suppression:', error);
+      setError(error.response?.data?.message || 'Erreur lors de la suppression de l\'administrateur');
     }
   };
 
@@ -121,15 +121,15 @@ const [error, setError] = useState('');
         Gestion des administrateurs
       </Typography>
       {error && (
-    <Typography color="error" sx={{ mb: 2 }}>
-      {error}
-    </Typography>
-  )}
-  {success && (
-    <Typography color="success.main" sx={{ mb: 2 }}>
-      {success}
-    </Typography>
-  )}
+        <Typography color="error" sx={{ mb: 2 }}>
+          {error}
+        </Typography>
+      )}
+      {success && (
+        <Typography color="#4caf50" sx={{ mb: 2 }}>
+          {success}
+        </Typography>
+      )}
       <Button variant="contained" color="primary" onClick={() => handleOpen()}>
         Ajouter un administrateur
       </Button>
@@ -168,6 +168,11 @@ const [error, setError] = useState('');
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>{editId ? 'Modifier un administrateur' : 'Ajouter un administrateur'}</DialogTitle>
         <DialogContent>
+          {error && (
+            <Typography color="error" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+          )}
           <TextField
             margin="dense"
             label="Nom d'utilisateur"
@@ -213,13 +218,6 @@ const [error, setError] = useState('');
             fullWidth
             value={formData.telephone}
             onChange={(e) => setFormData({ ...formData, telephone: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="ID Institution"
-            fullWidth
-            value={formData.institution_id}
-            onChange={(e) => setFormData({ ...formData, institution_id: e.target.value })}
           />
         </DialogContent>
         <DialogActions>
