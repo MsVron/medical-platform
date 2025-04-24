@@ -27,21 +27,25 @@ const Login = () => {
       });
       console.log('Login response:', response.data);
 
-      // Stocker le token et les informations utilisateur dans localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify({
+      // Log user data before storing
+      const userData = {
         id: response.data.user.id,
         username: response.data.user.nom_utilisateur,
         role: response.data.user.role,
         prenom: response.data.user.prenom,
-        nom: response.data.user.nom
-      }));
-      console.log('Stored in localStorage:', {
+        nom: response.data.user.nom,
+        id_specifique_role: response.data.user.id_specifique_role // Add for debugging
+      };
+      console.log('Storing in localStorage:', {
         token: response.data.token,
-        user: response.data.user,
+        user: userData,
       });
 
-      // Rediriger en fonction du rôle
+      // Store token and user info in localStorage
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      // Redirect based on role
       console.log('User role:', response.data.user.role);
       if (['super_admin', 'admin'].includes(response.data.user.role)) {
         console.log('Navigating to /admin');
