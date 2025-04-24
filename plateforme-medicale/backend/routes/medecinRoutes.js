@@ -1,18 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const medecinController = require('../controllers/medecinController');
-const { verifyToken, isAdmin, isSuperAdmin, isInstitution } = require('../middlewares/auth');
+const { verifyToken, isAdmin, isSuperAdmin } = require('../middlewares/auth');
 
-// Get doctors (super_admin/admin see all, institution sees their own)
-router.get('/medecins', verifyToken, medecinController.getMedecins);
-
-// Add doctor (super_admin can set all fields, admin can set non-critical)
+router.get('/medecins', verifyToken, isAdmin, medecinController.getMedecins);
 router.post('/medecins', verifyToken, isAdmin, medecinController.addMedecin);
-
-// Edit doctor (super_admin can edit all fields, admin can edit non-critical)
 router.put('/medecins/:id', verifyToken, isAdmin, medecinController.editMedecin);
-
-// Delete doctor (super_admin only)
 router.delete('/medecins/:id', verifyToken, isSuperAdmin, medecinController.deleteMedecin);
+router.get('/specialites', verifyToken, isAdmin, medecinController.getSpecialites);
+router.get('/institutions', verifyToken, isAdmin, medecinController.getInstitutions);
+router.get('/medecin/dashboard', verifyToken, medecinController.getCurrentMedecin); // Added
 
 module.exports = router;

@@ -40,7 +40,6 @@ const sidebarItems = {
   ],
   medecin: [
     { text: 'Mon espace', path: '/medecin', icon: <MedicalServices /> },
-    { text: 'Mes patients', path: '/medecin/patients', icon: <Person /> },
   ],
   patient: [
     { text: 'Mon espace', path: '/patient', icon: <Person /> },

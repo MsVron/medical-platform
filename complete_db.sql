@@ -33,48 +33,63 @@ CREATE TABLE admins (
   FOREIGN KEY (cree_par) REFERENCES super_admins(id),
 );
 
--- Table des établissements
 CREATE TABLE institutions (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nom VARCHAR(100) NOT NULL,
-  adresse VARCHAR(255) NOT NULL,
-  ville VARCHAR(100) NOT NULL,
-  code_postal VARCHAR(10) NOT NULL,
-  pays VARCHAR(50) NOT NULL DEFAULT 'France',
-  telephone VARCHAR(20),
-  email_contact VARCHAR(100) NOT NULL,
-  site_web VARCHAR(255),
-  description TEXT,
-  horaires_ouverture TEXT,
-  coordonnees_gps VARCHAR(50),
-  est_actif BOOLEAN DEFAULT TRUE,
-  date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  id int(11) NOT NULL AUTO_INCREMENT,
+  nom varchar(100) NOT NULL,
+  adresse varchar(255) NOT NULL,
+  ville varchar(100) NOT NULL,
+  code_postal varchar(10) NOT NULL,
+  pays varchar(50) NOT NULL DEFAULT 'France',
+  telephone varchar(20) DEFAULT NULL,
+  email_contact varchar(100) NOT NULL,
+  site_web varchar(255) DEFAULT NULL,
+  description text DEFAULT NULL,
+  horaires_ouverture text DEFAULT NULL,
+  coordonnees_gps varchar(50) DEFAULT NULL,
+  est_actif tinyint(1) DEFAULT 1,
+  date_creation timestamp NOT NULL DEFAULT current_timestamp(),
+  type enum('hôpital','clinique','cabinet privé','centre médical','laboratoire','autre') NOT NULL DEFAULT 'autre',
+  medecin_proprietaire_id int(11) DEFAULT NULL,
+  PRIMARY KEY (id),
+  KEY medecin_proprietaire_id (medecin_proprietaire_id),
+  CONSTRAINT institutions_ibfk_1 FOREIGN KEY (medecin_proprietaire_id) REFERENCES medecins (id)
+)
 
 ---
 
 -- Table des spécialités médicales
 CREATE TABLE specialites (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  nom VARCHAR(100) NOT NULL UNIQUE,
-  description TEXT
-);
+  id int(11) NOT NULL AUTO_INCREMENT,
+  nom varchar(100) NOT NULL,
+  description text DEFAULT NULL,
+  usage_count int(11) DEFAULT 0,
+  PRIMARY KEY (id),
+  UNIQUE KEY nom (nom)
+)
 
 -- Table des médecins
 CREATE TABLE medecins (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  prenom VARCHAR(50) NOT NULL,
-  nom VARCHAR(50) NOT NULL,
-  specialite_id INT,
-  numero_ordre VARCHAR(50) UNIQUE NOT NULL,
-  telephone VARCHAR(20),
-  email_professionnel VARCHAR(100),
-  photo_url VARCHAR(255),
-  biographie TEXT,
-  institution_id INT, -- Établissement principal
-  est_actif BOOLEAN DEFAULT TRUE,
-  FOREIGN KEY (specialite_id) REFERENCES specialites(id),
-  FOREIGN KEY (institution_id) REFERENCES institutions(id)
+  id int(11) NOT NULL AUTO_INCREMENT,
+  prenom varchar(50) NOT NULL,
+  nom varchar(50) NOT NULL,
+  specialite_id int(11) DEFAULT NULL,
+  numero_ordre varchar(50) NOT NULL,
+  telephone varchar(20) DEFAULT NULL,
+  email_professionnel varchar(100) DEFAULT NULL,
+  photo_url varchar(255) DEFAULT NULL,
+  biographie text DEFAULT NULL,
+  institution_id int(11) DEFAULT NULL,
+  est_actif tinyint(1) DEFAULT 1,
+  adresse varchar(255) DEFAULT NULL,
+  ville varchar(100) DEFAULT NULL,
+  code_postal varchar(10) DEFAULT NULL,
+  pays varchar(50) DEFAULT 'France',
+  PRIMARY KEY (id),
+  UNIQUE KEY numero_ordre (numero_ordre),
+  KEY specialite_id (specialite_id),
+  KEY institution_id (institution_id),
+  CONSTRAINT medecins_ibfk_1 FOREIGN KEY (specialite_id) REFERENCES specialites (id),
+  CONSTRAINT medecins_ibfk_2 FOREIGN KEY (institution_id) REFERENCES institutions (id)
 );
 
 ---
@@ -381,3 +396,68 @@ VALUES (
   'super_admin',
   (SELECT id FROM super_admins WHERE prenom = 'Aya' AND nom = 'Beroukech')
 );
+
+INSERT INTO specialites (nom, description) VALUES
+('Médecine générale', 'Médecine de premier recours et suivi global du patient'),
+('Cardiologie', 'Spécialité médicale traitant des troubles du cœur et du système cardiovasculaire'),
+('Pédiatrie', 'Spécialité médicale consacrée aux enfants et à leurs maladies'),
+('Gynécologie-Obstétrique', 'Spécialité médicale qui s\'occupe de la santé du système reproducteur féminin et du suivi de grossesse'),
+('Dermatologie', 'Spécialité médicale qui s\'occupe de la peau, des muqueuses et des phanères'),
+('Ophtalmologie', 'Spécialité médicale concernant les yeux et la vision'),
+('Orthopédie', 'Spécialité chirurgicale qui traite les troubles du système musculo-squelettique'),
+('Neurologie', 'Spécialité médicale traitant des troubles du système nerveux'),
+('Psychiatrie', 'Spécialité médicale traitant des troubles mentaux'),
+('Radiologie', 'Spécialité médicale utilisant l\'imagerie pour diagnostiquer les maladies'),
+('Pneumologie', 'Spécialité médicale qui traite les maladies respiratoires'),
+('Gastro-entérologie', 'Spécialité médicale concernant l\'appareil digestif'),
+('Endocrinologie', 'Spécialité médicale traitant des troubles hormonaux et métaboliques'),
+('Néphrologie', 'Spécialité médicale traitant des maladies rénales'),
+('Urologie', 'Spécialité chirurgicale traitant des troubles de l\'appareil urinaire'),
+('Rhumatologie', 'Spécialité médicale traitant des maladies des articulations et des tissus conjonctifs'),
+('Hématologie', 'Spécialité médicale concernant le sang et ses maladies'),
+('Oncologie', 'Spécialité médicale traitant des cancers'),
+('Chirurgie générale', 'Spécialité chirurgicale concernant les interventions sur l\'abdomen et les tissus mous'),
+('Chirurgie vasculaire', 'Spécialité chirurgicale des vaisseaux sanguins'),
+('Neurochirurgie', 'Spécialité chirurgicale du système nerveux'),
+('Chirurgie plastique', 'Spécialité chirurgicale reconstructrice et esthétique'),
+('ORL (Oto-rhino-laryngologie)', 'Spécialité médico-chirurgicale concernant les oreilles, le nez et la gorge'),
+('Stomatologie', 'Spécialité médico-chirurgicale concernant la bouche et les dents'),
+('Médecine interne', 'Spécialité médicale généraliste pour adultes traitant des maladies complexes ou multiples'),
+('Allergologie', 'Spécialité médicale traitant des allergies et de l\'immunologie'),
+('Médecine physique et réadaptation', 'Spécialité médicale concernant la rééducation fonctionnelle'),
+('Gériatrie', 'Spécialité médicale concernant les personnes âgées'),
+('Médecine du travail', 'Spécialité médicale concernant la santé au travail'),
+('Médecine d\'urgence', 'Spécialité médicale traitant des situations médicales urgentes'),
+('Anesthésie-réanimation', 'Spécialité médicale concernant l\'anesthésie et les soins intensifs'),
+('Médecine nucléaire', 'Spécialité médicale utilisant des produits radioactifs à des fins diagnostiques et thérapeutiques'),
+('Anatomopathologie', 'Spécialité médicale concernant l\'étude des tissus et cellules pathologiques'),
+('Biologie médicale', 'Spécialité médicale concernant les analyses biologiques'),
+('Infectiologie', 'Spécialité médicale traitant des maladies infectieuses'),
+('Médecine du sport', 'Spécialité médicale concernant les sportifs et les troubles liés à l\'activité physique'),
+('Addictologie', 'Spécialité médicale traitant des troubles addictifs'),
+('Médecine légale', 'Spécialité médicale concernant les aspects juridiques de la médecine'),
+('Chirurgie maxillo-faciale', 'Spécialité chirurgicale de la face et de la mâchoire'),
+('Chirurgie pédiatrique', 'Spécialité chirurgicale concernant les enfants'),
+('Pédopsychiatrie', 'Spécialité psychiatrique concernant les enfants et adolescents'),
+('Néonatologie', 'Spécialité médicale concernant les nouveau-nés'),
+('Génétique médicale', 'Spécialité médicale concernant les maladies génétiques'),
+('Immunologie clinique', 'Spécialité médicale traitant des troubles du système immunitaire'),
+('Chirurgie cardiaque', 'Spécialité chirurgicale du cœur'),
+('Chirurgie thoracique', 'Spécialité chirurgicale du thorax'),
+('Médecine palliative', 'Spécialité médicale concernant la fin de vie et les soins palliatifs'),
+('Médecine hyperbare', 'Spécialité médicale utilisant l\'oxygène sous pression'),
+('Médecine tropicale', 'Spécialité médicale concernant les maladies tropicales');
+
+
+
+UPDATE specialites s
+SET usage_count = (
+  SELECT COUNT(*) FROM medecins m WHERE m.specialite_id = s.id
+);
+
+INSERT INTO institutions (nom) VALUES ('Hôpital Central'), ('Clinique Nord');
+
+-- Ajouter un type à la table institutions pour différencier les types d'établissements
+ALTER TABLE institutions
+ADD COLUMN type ENUM('hôpital', 'clinique', 'cabinet privé', 'centre médical', 'laboratoire', 'autre') NOT NULL DEFAULT 'autre';
+
