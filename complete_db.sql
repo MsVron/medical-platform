@@ -458,6 +458,6 @@ SET usage_count = (
 INSERT INTO institutions (nom) VALUES ('Hôpital Central'), ('Clinique Nord');
 
 -- Ajouter un type à la table institutions pour différencier les types d'établissements
-ALTER TABLE institutions
+ALTER TA BLE institutions
 ADD COLUMN type ENUM('hôpital', 'clinique', 'cabinet privé', 'centre médical', 'laboratoire', 'autre') NOT NULL DEFAULT 'autre';
 

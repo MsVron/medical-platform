@@ -18,5 +18,7 @@ router.delete('/medecin/disponibilites/:id', verifyToken, medecinController.dele
 router.get('/medecin/absences', verifyToken, medecinController.getEmergencyAbsences);
 router.post('/medecin/absences', verifyToken, medecinController.addEmergencyAbsence);
 router.delete('/medecin/absences/:id', verifyToken, medecinController.deleteEmergencyAbsence);
+router.post('/medecin/patients', verifyToken, medecinController.addPatient);
+router.get('/medecin/patients', verifyToken, medecinController.getPatients);
 
 module.exports = router;
