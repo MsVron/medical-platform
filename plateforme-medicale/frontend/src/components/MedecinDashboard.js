@@ -209,7 +209,7 @@ const MedecinDashboard = () => {
   const handleOpenPatient = () => {
     setPatientForm({
       prenom: '', nom: '', date_naissance: null, sexe: '', CNE: '', email: '',
-      telephone: '', adresse: '', ville: '', code_postal: '', pays: 'France'
+      telephone: '', adresse: '', ville: '', code_postal: '', pays: 'Maroc'
     });
     setError('');
     setSuccess('');
