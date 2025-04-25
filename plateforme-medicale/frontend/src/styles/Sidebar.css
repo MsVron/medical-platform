@@ -1,43 +1,43 @@
 /* Drawer container */
 .MuiDrawer-paper {
-    background: linear-gradient(to bottom, #2c3e50, #4ca1af);
-    color: white;
-    border-right: none;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
-  }
+  background: linear-gradient(to bottom, #2c3e50, #4ca1af);
+  color: white;
+  border-right: none;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+}
 
-  /* Username & Role */
-  .MuiTypography-root {
-    color: white;
-    font-family: 'Segoe UI', sans-serif;
-  }
+/* Username & Role */
+.MuiTypography-root {
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+}
 
-  /* List items */
-  .MuiListItemButton-root {
-    color: white;
-    transition: all 0.3s ease;
-    border-radius: 8px;
-    margin: 4px 12px;
-  }
+/* List items */
+.MuiListItemButton-root {
+  color: white;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  margin: 4px 12px;
+}
 
-  .MuiListItemButton-root:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateX(4px);
-  }
+.MuiListItemButton-root:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(4px);
+}
 
-  /* Icons */
-  .MuiListItemIcon-root {
-    color: white;
-    min-width: 40px;
-  }
+/* Icons */
+.MuiListItemIcon-root {
+  color: white;
+  min-width: 40px;
+}
 
-  /* Logout button */
-  .MuiButton-containedError {
-    background-color: #e74c3c;
-    font-weight: bold;
-    transition: background-color 0.3s;
-  }
+/* Logout button */
+.MuiButton-containedError {
+  background-color: #e74c3c;
+  font-weight: bold;
+  transition: background-color 0.3s;
+}
 
-  .MuiButton-containedError:hover {
-    background-color: #c0392b;
-  }
+.MuiButton-containedError:hover {
+  background-color: #c0392b;
+}

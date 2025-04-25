@@ -1,5 +1,5 @@
 import React from 'react';
-import '../styles/Sidebar.css';
+import '../styles/Sidebar.css'; // Import the Sidebar CSS
 import {
   Drawer,
   List,
@@ -29,7 +29,7 @@ const SidebarView = ({ user, menuItems, handleNavigate, handleLogout }) => {
         '& .MuiDrawer-paper': {
           width: 240,
           boxSizing: 'border-box',
-          bgcolor: '#f5f5f5',
+          // CSS is applied via Sidebar.css
         },
       }}
     >
@@ -41,8 +41,20 @@ const SidebarView = ({ user, menuItems, handleNavigate, handleLogout }) => {
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton onClick={() => handleNavigate(item.path)}>
-              <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemButton
+              onClick={() => handleNavigate(item.path)}
+              sx={{
+                color: 'white',
+                transition: 'all 0.3s ease',
+                borderRadius: '8px',
+                margin: '4px 12px',
+                '&:hover': {
+                  bgcolor: 'rgba(255, 255, 255, 0.1)',
+                  transform: 'translateX(4px)',
+                }
+              }}
+            >
+              <ListItemIcon sx={{ color: 'white', minWidth: '40px' }}>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
@@ -56,6 +68,14 @@ const SidebarView = ({ user, menuItems, handleNavigate, handleLogout }) => {
           fullWidth
           startIcon={<LogoutIcon />}
           onClick={handleLogout}
+          sx={{
+            backgroundColor: '#e74c3c',
+            fontWeight: 'bold',
+            transition: 'background-color 0.3s',
+            '&:hover': {
+              backgroundColor: '#c0392b',
+            }
+          }}
         >
           Déconnexion
         </Button>
